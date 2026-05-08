@@ -1,0 +1,216 @@
+<!-- instructions.html - содержимое инструкции -->
+<div class="instructions-container">
+    <!-- Поисковая строка -->
+    <div class="instructions-search">
+        <input type="text" id="instructionsSearchInput" class="search-input" placeholder="🔍 Поиск по инструкции..." style="width: 100%; padding: 10px 16px; border-radius: 30px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-primary);">
+        <div id="searchResultsCount" class="search-results-count" style="font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: right;"></div>
+    </div>
+
+    <!-- Оглавление -->
+    <div class="instructions-toc" style="background: var(--badge-bg); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
+        <div style="font-weight: bold; margin-bottom: 12px; color: var(--badge-text);">📑 Оглавление</div>
+        <div id="tocContainer" class="toc-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+    </div>
+
+    <!-- Разделы инструкции -->
+    <div id="sectionsContainer">
+        <!-- Раздел 1: Общее (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="general" data-title="Общее" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">📌 Общее</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p><strong>🛒 Корзина</strong> — плавающая кнопка в правом нижнем углу экрана. Показывает количество товаров в корзине. Нажмите, чтобы открыть корзину и оформить продажу.</p>
+                <p><strong>🔄 Обновить</strong> — позволяет вручную обновить данные о товарах. Нажимать постоянно не нужно, данные обновляются автоматически каждую минуту.</p>
+                <p><strong>📜 История</strong> — просмотр всех ваших продаж и возвратов.</p>
+                <p><strong>📋 Правила</strong> — специальные акции и бонусы (например, «при покупке 2 футболок — стикер в подарок»).</p>
+                <p><strong>📊 Статистика</strong> — ваша личная статистика продаж, прибыли, среднего чека и т.д.</p>
+                <p><strong>🆘 Техподдержка</strong> — отправка сообщения разработчику.</p>
+                <p><strong>⚙️ Настройки</strong> — меню для выхода из аккаунта и настройки приватности статистики.</p>
+                <p><strong>🌙/☀️</strong> — переключение светлой/тёмной темы.</p>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 2: Работа с товарами (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="products" data-title="Работа с товарами" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">📦 Работа с товарами</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p><strong>Карточка товара</strong> — каждый товар отображается в виде отдельной карточки со всей информацией.</p>
+                <p><strong>Название и тип</strong> — информация о товаре. По клику на название можно увидеть фото товара (если оно загружено).</p>
+                <p><strong>📦 Всего</strong> — сколько всего товара было получено.</p>
+                <p><strong>Остаток</strong> — сколько товара сейчас есть в наличии.</p>
+                <p><strong>💰 Цена</strong> — стоимость одной единицы товара.</p>
+                <p><strong>✏️ (Карандаш)</strong> — редактирование товара (тип, название, остаток, цену, себестоимость, загрузка/удаление фото).</p>
+                <p><strong>💬 (Комментарий)</strong> — добавление или просмотр заметок к товару.</p>
+                <p><strong>🔎 Поиск и фильтры</strong> — поиск товара по названию, фильтрация по типу (футболки, стикеры и т.д.) и сортировка.</p>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 3: Корзина и продажи (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="cart" data-title="Корзина и продажи" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">🛒 Корзина и продажи</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p><strong>Поштучная продажа:</strong> на карточке товара нажмите <strong>−1</strong> — товар сразу спишется со склада.</p>
+                <p><strong>Возврат:</strong> на карточке товара нажмите <strong>+1</strong> — товар вернётся на склад.</p>
+                <p><strong>Продажа через корзину (рекомендуется):</strong></p>
+                <ol>
+                    <li>Добавляйте товары через кнопку <strong>➕ Добавить в корзину</strong> на карточках.</li>
+                    <li>Нажмите на плавающую кнопку <strong>🛒</strong>.</li>
+                    <li>Проверьте выбранные товары, настройте количество кнопками «−» и «+».</li>
+                    <li>Выберите способ оплаты: наличные или перевод (галочка «Оплата переводом»).</li>
+                    <li>Примените скидку (процент или фиксированная сумма) на всю корзину или выбранные товары.</li>
+                    <li>Нажмите <strong>✅ Продать</strong> — товары спишутся, запись появится в истории.</li>
+                </ol>
+                <p><strong>Дополнительные действия в корзине:</strong></p>
+                <ul>
+                    <li><strong>🎁 Подарить</strong> — оформить продажу на сумму 0 ₽ (для подарков или обмена).</li>
+                    <li><strong>❌ Очистить</strong> — удалить все товары из корзины.</li>
+                </ul>
+                <p><strong>Активные правила</strong> из раздела «Правила» будут показаны в корзине при оформлении продажи.</p>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 4: Статистика (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="stats" data-title="Статистика" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">📊 Статистика</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p>Нажмите <strong>📊 Статистика</strong> для просмотра вашей личной статистики продаж.</p>
+                <p><strong>Что вы увидите:</strong></p>
+                <ul>
+                    <li>💰 Выручка — общая сумма продаж.</li>
+                    <li>📦 Себестоимость всего товара — затраты на закупку.</li>
+                    <li>➕ Дополнительные расходы — ваши личные расходы (доставка, материалы и т.д.).</li>
+                    <li>💵 Дополнительные доходы — поступления помимо продаж (найденные 10 копеек и т.д.).</li>
+                    <li>📈 Чистая прибыль — выручка минус все расходы.</li>
+                    <li>📊 Продано товаров — общее количество проданных единиц.</li>
+                    <li>📦 Осталось товаров — текущий остаток на складе.</li>
+                    <li>🛒 Количество заказов — сколько всего было продаж (включая поштучные).</li>
+                    <li>💳 Средний чек — средняя сумма одного заказа.</li>
+                </ul>
+                <p><strong>Фильтр по времени:</strong> нажмите на иконку <strong>📅</strong> сверху справа, чтобы выбрать конкретный период.</p>
+                <p><strong>Детализация:</strong> таблицы с разбивкой по товарам и типам мерча помогут понять, что продаётся лучше всего.</p>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 5: Бронирование (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="bookings" data-title="Бронирование" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">📦 Бронирование</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p>Бронирование позволяет временно зарезервировать товары для конкретного клиента. Товары при этом списываются со склада.</p>
+                <p><strong>Как создать бронь:</strong></p>
+                <ol>
+                    <li>Нажмите <strong>📦 Бронирование</strong>.</li>
+                    <li>Введите ник покупателя.</li>
+                    <li>Нажмите <strong>📦 Выберите товары</strong> и отметьте нужные позиции.</li>
+                    <li>Установите количество каждого товара.</li>
+                    <li>Нажмите <strong>📦 Забронировать</strong>.</li>
+                </ol>
+                <p><strong>Управление бронями:</strong></p>
+                <ul>
+                    <li>Нажмите на ник клиента в списке, чтобы увидеть детали брони.</li>
+                    <li><strong>❌ Отменить бронь</strong> — товары вернутся на склад.</li>
+                    <li><strong>🛒 В корзину</strong> — перенести товары из бронирования в корзину для быстрой продажи.</li>
+                </ul>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 6: Поставка (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="supply" data-title="Поставка" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">📦 Поставка</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p>Используйте этот раздел при получении новых партий товара.</p>
+                <ol>
+                    <li>Нажмите <strong>📦 Поставка</strong>.</li>
+                    <li>Выберите товар из выпадающего списка.</li>
+                    <li>Укажите количество полученного товара.</li>
+                    <li>Нажмите <strong>📦 Добавить поставку</strong>.</li>
+                </ol>
+                <p><strong>Важно:</strong> при добавлении поставки автоматически увеличивается как <strong>Всего</strong> (общее количество товара), так и <strong>Остаток</strong> на складе. История всех поставок сохраняется в отдельном листе таблицы.</p>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 7: Добавление товара (для всех) -->
+        <div class="instruction-section" data-role="all" data-section="additem" data-title="Добавление товара" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">➕ Добавление товара</h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p>Добавляйте новые товары в ассортимент.</p>
+                <ol>
+                    <li>Нажмите <strong>➕ Добавить товар</strong>.</li>
+                    <li>Выберите тип товара из списка или создайте новый (нажмите <strong>➕</strong> рядом с полем).</li>
+                    <li>Введите название товара.</li>
+                    <li>Укажите <strong>Всего</strong> — сколько единиц товара получено.</li>
+                    <li>Укажите <strong>Остаток</strong> — сколько сейчас в наличии (может быть меньше общего количества, если часть уже продана).</li>
+                    <li>Укажите <strong>Цену</strong> и <strong>Себестоимость</strong>.</li>
+                    <li>Нажмите <strong>💾 Добавить</strong>.</li>
+                </ol>
+                <p><strong>Совет:</strong> после добавления товара вы можете загрузить его фото через режим редактирования (кнопка ✏️ на карточке товара).</p>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 8: Статистика всех (только организатор) -->
+        <div class="instruction-section" data-role="organizer" data-section="globalstats" data-title="Статистика всех" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">📊 Статистика всех <span style="background: #e67e22; color: white; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 8px;">👑</span></h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <ol style="margin: 0; padding-left: 20px;">
+                    <li>Нажмите <strong>📊 Статистика всех</strong>.</li>
+                    <li>Вы увидите:
+                        <ul>
+                            <li><strong>Общие показатели:</strong> суммарная выручка, себестоимость, прибыль, рентабельность по всем.</li>
+                            <li><strong>Статистика по участникам:</strong> таблица с показателями каждого художника (только тех, кто не скрыл статистику).</li>
+                            <li><strong>Детализация по типам мерча и товарам</strong> — в разрезе всех участников.</li>
+                            <li><strong>Общие расходы/доходы организатора.</strong> Вы можете добавлять сюда расходы (аренда, налоги, реклама) и доходы (найденные 10 копеек), которые повлияют на общую прибыль.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Просмотр статистики отдельного участника:</strong>
+                        <ul>
+                            <li>В выпадающем списке выберите конкретного художника.</li>
+                            <li>Если он <strong>не скрыл статистику</strong>, вы увидите его личную детализацию: продажи по товарам, прибыль, рентабельность, его собственные расходы/доходы.</li>
+                            <li>Если он <strong>скрыл статистику</strong>, вы увидите сообщение «Участник не делится статистикой».</li>
+                            <li>Если он разрешил <strong>анонимную статистику</strong>, его данные будут учитываться в общих цифрах, но имя не будет показываться.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+
+        <!-- Раздел 9: Имперсонация (только организатор) -->
+        <div class="instruction-section" data-role="organizer" data-section="impersonate" data-title="Имперсонация" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+            <h2 style="color: var(--btn-bg); margin-top: 0; margin-bottom: 12px; font-size: 18px;">👥 Имперсонация <span style="background: #e67e22; color: white; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 8px;">👑</span></h2>
+            <div class="section-content" style="color: var(--text-primary); line-height: 1.5;">
+                <p>Имперсонация позволяет временно войти в аккаунт художника, чтобы увидеть интерфейс от его лица или проверить его статистику.</p>
+                <ol style="margin: 0; padding-left: 20px;">
+                    <li>Нажмите кнопку <strong>👥 Другие пользователи</strong>.</li>
+                    <li>Выберите художника из выпадающего списка.</li>
+                    <li>Вы войдёте в его аккаунт. Сверху появится жёлтый баннер <strong>«Вы действуете от лица...»</strong>.</li>
+                    <li>Теперь вы можете просматривать данные пользователя и совершать действия от его имени. <strong>Осторожно:</strong> все действия будут записаны в истории пользователя с пометкой, содержащей ваше имя!</li>
+                    <li>Чтобы выйти, нажмите кнопку <strong>«Выйти»</strong> на верхнем баннере.</li>
+                </ol>
+            </div>
+            <div class="section-footer" style="margin-top: 16px; text-align: right;">
+                <a href="#" class="toc-link" data-section="general" style="color: var(--btn-bg); text-decoration: none; font-size: 13px;">🔝 Вернуться к оглавлению</a>
+            </div>
+        </div>
+    </div>
+</div>

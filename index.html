@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Банановый учёт мерча</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <button class="cart-fab" id="cartFab" onclick="openCartModal()">
+        🛒
+        <span class="cart-badge" id="cartCount">0</span>
+    </button>
+
+    <!-- ЭКРАН ВХОДА -->
+    <div id="loginOverlay" style="position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:2000; display:flex; align-items:center; justify-content:center;">
+        <div class="login-card">
+            <h2>Ясгу фд</h2>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Заходите на пати</p>
+            <input type="text" id="loginInput" style="width:100%; padding:12px; font-size:16px; border:1px solid var(--border-color); border-radius:30px; outline:none; margin-bottom:12px; text-align:center; background:var(--card-bg); color:var(--text-primary);" placeholder="Логин" autofocus>
+            <div class="password-wrapper">
+                <input type="password" id="passwordInput" placeholder="Пароль">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">👁️</button>
+            </div>
+            <button id="loginBtn" style="background:var(--btn-bg); color:white; border:none; border-radius:30px; padding:12px 24px; font-size:16px; font-weight:500; width:100%; cursor:pointer;">Войти</button>
+            <div id="errorMsg" style="color:var(--minus-color); font-size:12px; margin-top:12px; display:none;"></div>
+        </div>
+    </div>
+    
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div id="mainContent" style="display:none;">
+        <div class="header-row">
+            <div class="title-area">
+                <h1 id="shopTitle">Учёт мерча</h1>
+                <span class="beta-badge">beta</span>
+            </div>
+            <div class="header-buttons">
+                <button class="theme-toggle" id="themeToggle" title="Смена темы">🌙</button>
+                <button class="support-btn" id="supportBtn" title="Техподдержка">🆘</button>
+                <div class="settings-menu">
+                    <button class="settings-toggle" id="settingsToggle" title="Настройки">⚙️</button>
+                    <div id="settingsDropdown" class="settings-dropdown hidden">
+                        <button id="shareStatsBtn" class="settings-btn">🔗 Делиться статистикой анонимно</button>
+                        <button id="hideStatsBtn" class="settings-btn">🚫 Не учитывать мою статистику</button>
+                        <button id="logoutBtn" class="settings-btn logout">🚪 Выйти</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sub">Всё на благо ясгу фд! Всё на благо ясгу фд!</div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button class="refresh-btn" onclick="loadData(true, true)">🔄 Обновить</button>
+            <button class="history-btn" onclick="showHistory()">📜 История</button>
+            <button class="refresh-btn" id="rulesButton">📋 Правила</button>
+            <button class="refresh-btn" id="statsButton">📊 Статистика</button>
+            <button class="refresh-btn" id="globalStatsBtn" style="display: none;">📊 Статистика всех</button>
+            <button class="refresh-btn" id="bookingsButton">📦 Бронирование</button>
+            <button class="refresh-btn" id="supplyButton">📦 Поставка</button>
+            <button class="refresh-btn" id="addItemButton">➕ Добавить товар</button>
+            <button class="refresh-btn" id="impersonateBtn" style="position: relative; display: none;">👥 Другие пользователи</button>
+        </div>
+
+        <div id="progressContainer" class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div class="search-panel">
+            <input type="text" id="searchInput" class="search-input" placeholder="Поиск по названию... ">
+            <div class="filter-row">
+                <div class="custom-select" id="typeFilterContainer">
+                    <div class="custom-select-trigger" id="typeFilterTrigger">Все типы мерча</div>
+                    <div class="custom-select-dropdown" id="typeFilterDropdown"></div>
+                </div>
+                <div class="custom-select" id="sortByContainer">
+                    <div class="custom-select-trigger" id="sortByTrigger">Без сортировки</div>
+                    <div class="custom-select-dropdown" id="sortByDropdown"></div>
+                </div>
+                <button id="resetFilters" class="reset-btn">✕</button>
+            </div>
+        </div>
+
+        <div id="cards-container">
+            <div class="loading">Загрузка...</div>
+        </div>
+        <div class="last-update" id="update-time"></div>
+        <div class="auto-refresh-badge">
+            <span class="dot"></span>
+            <span>Автообновление каждую минуту</span>
+        </div>
+        <div class="footer">
+            <span id="namyaucano" style="cursor: pointer; text-decoration: none;">Намяукано</span> |
+            <a id="sheetLink" href="#" target="_blank">Синхронизация с таблицей</a> |
+            <span id="instructionsLink" style="cursor: pointer; text-decoration: none;">Инструкция</span>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal cart-modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeCartModal()">×</button>
+            <div class="modal-header">
+                <span>🛒 Корзина</span>
+            </div>
+            <div id="discount-panel" class="discount-section" style="display: none;"></div>
+            <div id="cart-items-list">
+                <div class="empty-cart">Корзина пуста</div>
+            </div>
+            <div id="cart-total" class="cart-total" style="display:none;">Итого: 0 ₽</div>
+            <div class="cart-actions" id="cart-actions" style="display:none;">
+                <button class="cart-gift" onclick="giftCart()">🎁 Подарить</button>
+                <button class="cart-clear" onclick="clearCart()">❌ Очистить</button>
+                <button class="cart-checkout" onclick="checkout()">✅ Продать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rulesModal" class="modal">
+        <div class="modal-content" style="max-width: 550px;">
+            <button class="modal-close-btn" onclick="closeRulesModal()">×</button>
+            <div class="modal-header">
+                <span>📋 Правила для продавца</span>
+            </div>
+            <div class="rule-type-buttons">
+                <button class="rule-type-btn" data-type="type" onclick="selectRuleType('type')">📦 По типу</button>
+                <button class="rule-type-btn" data-type="product" onclick="selectRuleType('product')">🏷️ По товару</button>
+                <button class="rule-type-btn" data-type="price" onclick="selectRuleType('price')">💰 По сумме</button>
+                <button class="rule-type-btn" data-type="bonus" onclick="selectRuleType('bonus')">💵 Бонус</button>
+            </div>
+            <div id="ruleTypeContent"></div>
+            <button onclick="addStructuredRule()" style="background: var(--btn-bg); color: white; width: 100%; padding: 12px; border-radius: 30px; border: none; font-size: 14px; margin-top: 8px; cursor: pointer;">➕ Добавить правило</button>
+            <div style="font-weight: bold; margin: 20px 0 12px 0;">📋 Список правил</div>
+            <div id="rules-list" style="max-height: 300px; overflow-y: auto;">
+                <div class="empty-cart">📭 Нет добавленных правил. Создайте новое!</div>
+            </div>
+            <button onclick="deleteAllRules()" style="background: var(--minus-bg); color: var(--minus-color); width: 100%; padding: 12px; border-radius: 30px; border: none; font-size: 14px; margin-top: 12px; cursor: pointer;">🗑 Удалить все правила</button>
+        </div>
+    </div>
+
+    <!-- History Modal (кастомные селекторы для даты/времени) -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content" style="max-width: 550px;">
+            <button class="modal-close-btn" onclick="closeHistory()">×</button>
+            <div class="modal-header">
+                <span>📜 История операций</span>
+            </div>
+            <div class="history-filters">
+                <div class="history-filter-row">
+                    <div class="history-filter-buttons-group">
+                        <button class="history-filter-btn history-filter-btn-small" data-method="all" onclick="setHistoryMethodFilter('all')">Все</button>
+                        <button class="history-filter-btn history-filter-btn-large" data-method="basket" onclick="setHistoryMethodFilter('basket')">Корзина</button>
+                        <button class="history-filter-btn history-filter-btn-large" data-method="single" onclick="setHistoryMethodFilter('single')">Поштучно</button>
+                    </div>
+                    <div class="history-filter-buttons-group">
+                        <button class="history-filter-btn history-filter-btn-small" data-type="all" onclick="setHistoryTypeFilter('all')">Все</button>
+                        <button class="history-filter-btn history-filter-btn-large" data-type="sale" onclick="setHistoryTypeFilter('sale')">Продажи</button>
+                        <button class="history-filter-btn history-filter-btn-large" data-type="return" onclick="setHistoryTypeFilter('return')">Возвраты</button>
+                    </div>
+                </div>
+                <div class="history-filter-row">
+                    <div class="history-filter-buttons-group">
+                        <button class="history-filter-btn history-filter-btn-small" data-payment="all" onclick="setHistoryPaymentFilter('all')">Все</button>
+                        <button class="history-filter-btn history-filter-btn-large" data-payment="cash" onclick="setHistoryPaymentFilter('cash')">Наличные</button>
+                        <button class="history-filter-btn history-filter-btn-large" data-payment="transfer" onclick="setHistoryPaymentFilter('transfer')">Перевод</button>
+                    </div>
+                </div>
+                <div class="history-filter-bottom">
+                    <div class="history-filter-left">
+                        <div class="custom-datetime" id="datetimeFromContainer">
+                            <span class="datetime-label">с</span>
+                            <div id="dateFromDateGroup" style="display: inline-flex; align-items: center; gap: 6px;"></div>
+                            <div id="dateFromTimeGroup" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 8px;"></div>
+                        </div>
+                    <!-- Скрытые select для хранения значений -->
+                        <select id="dateFromDay" style="display: none;"></select>
+                        <select id="dateFromMonth" style="display: none;"></select>
+                        <select id="dateFromYear" style="display: none;"></select>
+                        <select id="timeFromHour" style="display: none;"></select>
+                        <select id="timeFromMinute" style="display: none;"></select>
+                    </div>
+                    <div class="history-filter-left" style="margin-top: 8px;">
+                        <div class="custom-datetime" id="datetimeToContainer">
+                            <span class="datetime-label">по</span>
+                            <div id="dateToDateGroup" style="display: inline-flex; align-items: center; gap: 6px;"></div>
+                            <div id="dateToTimeGroup" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 8px;"></div>
+                        </div>
+                    <!-- Скрытые select для хранения значений -->
+                        <select id="dateToDay" style="display: none;"></select>
+                        <select id="dateToMonth" style="display: none;"></select>
+                        <select id="dateToYear" style="display: none;"></select>
+                        <select id="timeToHour" style="display: none;"></select>
+                        <select id="timeToMinute" style="display: none;"></select>
+                        <div class="history-price-filter">
+                            <span>💰</span>
+                            <input type="number" id="historyMinPrice" placeholder="0" value="0" step="100">
+                            <span class="history-price-separator">—</span>
+                            <input type="number" id="historyMaxPrice" placeholder="∞" step="100">
+                        </div>
+                    </div>
+                    <div class="history-filter-reset-row">
+                        <button class="history-filter-reset" onclick="resetHistoryFilters()">Сбросить</button>
+                    </div>
+                </div>
+            </div>
+            <button class="history-clear-btn" onclick="clearAllHistory()">🗑 Очистить всю историю</button>
+            <div id="history-list">
+                <div class="loading">Загрузка истории...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <button class="modal-close-btn" onclick="closeStatsModal()">×</button>
+            <div class="modal-header">
+                <span>📊 Статистика продаж</span>
+                <button id="statsFilterToggle" class="filter-toggle-btn" onclick="toggleStatsFilter()" title="Фильтр по времени">📅</button>
+            </div>
+            <div id="statsFilterBlock" class="stats-filter-block" style="display: none;">
+                <div class="history-filter-bottom" style="margin-bottom: 0;">
+                    <div class="history-filter-left">
+                        <div class="custom-datetime" id="statsDatetimeFromContainer">
+                            <span class="datetime-label">с</span>
+                            <div id="statsDateFromContainer" style="display: inline-flex; align-items: center;"></div>
+                        </div>
+                    </div>
+                    <div class="history-filter-left" style="margin-top: 8px;">
+                        <div class="custom-datetime" id="statsDatetimeToContainer">
+                            <span class="datetime-label">по</span>
+                            <div id="statsDateToContainer" style="display: inline-flex; align-items: center;"></div>
+                        </div>
+                    </div>
+                    <div class="history-filter-reset-row" style="justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                        <button class="history-filter-reset" onclick="resetStatsFilter()">Сбросить</button>
+                        <button class="filter-apply-btn" onclick="applyStatsFilter()" style="width: auto; padding: 0 16px;">Применить</button>
+                    </div>
+                </div>
+            </div>
+            <div id="stats-content">
+                <div class="loading">Загрузка статистики...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Stats Modal -->
+    <div id="globalStatsModal" class="modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <button class="modal-close-btn" onclick="closeGlobalStatsModal()">×</button>
+            <div class="modal-header">
+                <span>📊 Статистика всех участников</span>
+                <button id="globalStatsFilterToggle" class="filter-toggle-btn" onclick="toggleGlobalStatsFilter()" title="Фильтр по времени">📅</button>
+            </div>
+            <div id="globalStatsFilterBlock" class="stats-filter-block" style="display: none;">
+                <div class="history-filter-bottom" style="margin-bottom: 0;">
+                    <div class="history-filter-left">
+                        <div class="custom-datetime" id="globalStatsDatetimeFromContainer">
+                            <span class="datetime-label">с</span>
+                            <div id="globalStatsDateFromContainer" style="display: inline-flex; align-items: center;"></div>
+                        </div>
+                    </div>
+                    <div class="history-filter-left" style="margin-top: 8px;">
+                        <div class="custom-datetime" id="globalStatsDatetimeToContainer">
+                            <span class="datetime-label">по</span>
+                            <div id="globalStatsDateToContainer" style="display: inline-flex; align-items: center;"></div>
+                        </div>
+                    </div>
+                    <div class="history-filter-reset-row" style="justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                        <button class="history-filter-reset" onclick="resetGlobalStatsFilter()">Сбросить</button>
+                        <button class="filter-apply-btn" onclick="applyGlobalStatsFilter()" style="width: auto; padding: 0 16px;">Применить</button>
+                    </div>
+                </div>
+            </div>
+            <div id="globalStats-content">
+                <div class="loading">Загрузка статистики...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal edit-product-modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeEditProductModal()">×</button>
+            <div class="modal-header">
+                <span id="editTitle">✏️ Редактирование товара</span>
+            </div>
+            <div id="edit-product-content">
+                <div class="edit-row">
+                    <span class="edit-label">Тип</span>
+                    <div id="editTypeContainer" style="flex: 1;"></div>
+                </div>
+            
+                <div id="editAttributesContainer"></div>
+            
+                <!-- Скрытые select для хранения значений атрибутов -->
+                <select id="edit_attr1" style="display: none;"></select>
+                <select id="edit_attr2" style="display: none;"></select>
+                <select id="editType" style="display: none;"></select>
+            
+                <div class="edit-row">
+                    <span class="edit-label">Название</span>
+                    <input type="text" id="editName" class="edit-input" placeholder="Название товара">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Остаток</span>
+                    <input type="number" id="editStock" class="edit-input" value="0" min="0">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Всего</span>
+                    <input type="number" id="editTotal" class="edit-input" value="0" min="0">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Цена</span>
+                    <input type="number" id="editPrice" class="edit-input" value="0" min="0" step="1">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Себестоимость</span>
+                    <input type="number" id="editCost" class="edit-input" value="0" min="0" step="1">
+                </div>
+            
+                <div class="photo-section">
+                    <div class="photo-header">📷 Фото товара</div>
+                    <div class="photo-content">
+                        <div id="photoPreviewContainer" class="photo-preview">
+                            <div style="display: flex; align-items: center; justify-content: center; height: 150px; background: var(--badge-bg); border-radius: 8px; color: var(--text-muted);">📷 Нет фото</div>
+                        </div>
+                        <div class="photo-buttons">
+                            <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                            <button type="button" id="uploadPhotoBtn" class="photo-btn">📁 Выбрать файл</button>
+                            <button type="button" id="deletePhotoBtn" class="photo-btn delete-btn" style="display: none;">🗑 Удалить</button>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="edit-buttons">
+                    <button class="edit-cancel-btn" onclick="closeEditProductModal()">❌ Отмена</button>
+                    <button class="edit-save-btn" onclick="saveProductChanges()">💾 Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bookings Modal -->
+    <div id="bookingsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <button class="modal-close-btn" onclick="closeBookingsModal()">×</button>
+            <div class="modal-header">
+                <span>📦 Бронирование товаров</span>
+            </div>
+            <div id="bookings-content">
+                <div class="loading">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="modal-close-btn" onclick="closeAddItemModal()">×</button>
+            <div class="modal-header">
+                <span>➕ Добавление товара</span>
+            </div>
+            <div id="add-item-content">
+                <div class="edit-row">
+                    <span class="edit-label">Тип</span>
+                    <div style="flex: 1;">
+                        <div id="addItemTypeContainer" style="width: 100%;"></div>
+                    </div>
+                </div>
+            
+                <div id="addAttributesContainer"></div>
+                
+                <!-- Скрытые select для хранения значений атрибутов -->
+                <select id="addItemType" style="display: none;"></select>
+                <select id="add_attr1" style="display: none;"></select>
+                <select id="add_attr2" style="display: none;"></select>
+            
+                <div class="edit-row">
+                    <span class="edit-label">Название</span>
+                    <input type="text" id="addItemName" class="edit-input" placeholder="Название товара">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Всего</span>
+                    <input type="number" id="addItemTotal" class="edit-input" value="0" min="0" step="1">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Остаток</span>
+                    <input type="number" id="addItemStock" class="edit-input" value="0" min="0" step="1">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Цена</span>
+                    <input type="number" id="addItemPrice" class="edit-input" value="0" min="0" step="1">
+                </div>
+                <div class="edit-row">
+                    <span class="edit-label">Себестоимость</span>
+                    <input type="number" id="addItemCost" class="edit-input" value="0" min="0" step="1">
+                </div>
+                <div class="edit-buttons">
+                    <button class="edit-cancel-btn" onclick="closeAddItemModal()">❌ Отмена</button>
+                    <button class="edit-save-btn" onclick="addNewItem()">💾 Добавить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Photo View Modal -->
+    <div id="photoViewModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closePhotoModal()">×</button>
+            <div class="modal-header">
+                <span id="photoModalTitle">📷 Фото товара</span>
+            </div>
+            <div id="photoModalContent">
+                <div class="loading">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close-btn" onclick="closeCommentModal()">×</button>
+            <div class="modal-header">
+                <span>💬 Комментарий к товару</span>
+            </div>
+            <div id="commentModalContent">
+                <div class="comment-item-name" id="commentItemName" style="margin-bottom: 12px; font-weight: bold; color: var(--badge-text);"></div>
+                <textarea id="commentText" rows="5" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-primary); font-size: 14px; resize: vertical;" placeholder="Введите комментарий к товару..."></textarea>
+                <div class="comment-last-updated" id="commentLastUpdated" style="font-size: 11px; color: var(--text-muted); margin-top: 8px;"></div>
+                <div class="edit-buttons" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="edit-cancel-btn" onclick="closeCommentModal()">❌ Отмена</button>
+                    <button class="edit-save-btn" onclick="saveCommentAndClose()">💾 Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supply Modal -->
+    <div id="supplyModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; overflow: visible;">
+            <button class="modal-close-btn" onclick="closeSupplyModal()">×</button>
+            <div class="modal-header">
+                <span>📦 Поставка товаров</span>
+            </div>
+            <div id="supply-content">
+                <div class="edit-row" style="margin-bottom: 16px;">
+                    <span class="edit-label">Товар</span>
+                    <div class="supply-product-select" id="supplyProductSelect" style="flex: 2;"></div>
+                </div>
+                <div class="edit-row" style="margin-bottom: 16px;">
+                    <span class="edit-label">Количество</span>
+                    <input type="number" id="supplyQuantity" class="edit-input" value="1" min="1" step="1" style="flex: 2;">
+                </div>
+                <div class="edit-buttons" style="margin-top: 20px;">
+                    <button class="edit-cancel-btn" onclick="closeSupplyModal()">❌ Отмена</button>
+                    <button class="edit-save-btn" onclick="handleAddSupply()">📦 Добавить поставку</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div id="supportModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close-btn" onclick="closeSupportModal()">×</button>
+            <div class="modal-header">
+                <span>🆘 Техподдержка</span>
+            </div>
+            <div id="support-content">
+                <div style="margin-bottom: 16px; color: var(--text-muted); font-size: 13px;">
+                    Напишите ваше пожелание, предложение, вопрос, жалобу или угрозу
+                </div>
+                <div class="edit-row" style="margin-bottom: 16px;">
+                    <span class="edit-label">Контакт</span>
+                    <input type="text" id="supportContact" class="edit-input" placeholder="Telegram (опционально)" style="flex: 2;">
+                </div>
+                <div class="edit-row" style="margin-bottom: 16px;">
+                    <span class="edit-label">Сообщение</span>
+                    <textarea id="supportMessage" rows="5" class="edit-input" placeholder="Подробно опишите проблему..." style="flex: 2; resize: vertical;"></textarea>
+                </div>
+                <div class="edit-buttons" style="margin-top: 20px;">
+                    <button class="edit-cancel-btn" onclick="closeSupportModal()">❌ Отмена</button>
+                    <button class="edit-save-btn" onclick="sendSupportRequest()">✉️ Отправить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Easter Egg Modal -->
+    <div id="easterEggModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; text-align: center; position: relative;">
+            <button class="modal-close-btn" onclick="closeEasterEggModal()" style="position: absolute; top: 12px; right: 16px;">×</button>
+            <div class="modal-header" style="justify-content: center; margin-bottom: 20px; width: 100%;">
+                <span>🎀 Создатели 🎀</span>
+            </div>
+            <div id="easterEggContent">
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: bold; color: var(--btn-bg); margin-bottom: 10px;">✨ Вдохновители ✨</div>
+                    <div style="font-size: 14px; margin-bottom: 4px; color: var(--text-primary);">Ненадежный пользователь Интернета Олиенн</div>
+                    <div style="font-size: 14px; margin-bottom: 4px; color: var(--text-primary);">Босс подвала Рэира</div>
+                    <div style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Миел "Ненавижу-Понедельники"</div>
+                    
+                    <div style="font-weight: bold; color: var(--btn-bg); margin-bottom: 10px;">🍌 Бета-тестеры 🍌</div>
+                    <div style="font-size: 14px; margin-bottom: 4px; color: var(--text-primary);">Раб Божий Роланд</div>
+                    <div style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Морально поддерживающий Банан</div>
+
+                    <div style="font-weight: bold; color: var(--btn-bg); margin-bottom: 10px;">💋 Дизайнер 💋</div>
+                    <div style="font-size: 14px; margin-bottom: 20px; color: var(--text-primary);">Бдсм-мастер Антошк</div>
+                    
+                    <div style="font-weight: bold; color: var(--btn-bg); margin-bottom: 10px;">🐾 Создатель 🐾</div>
+                    <div style="font-size: 14px; margin-bottom: 20px; color: var(--text-primary);">Настюша</div>
+                </div>
+                <button id="easterEggButton" class="easter-egg-btn" onclick="activateEasterEgg()">🎁 ТЫК</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 85vh;">
+            <button class="modal-close-btn" onclick="closeInstructionsModal()">×</button>
+            <div class="modal-header">
+                <span>📖 Инструкция по использованию</span>
+            </div>
+            <div id="instructions-content" style="overflow-y: auto; padding-right: 8px;">
+                <div class="loading">Загрузка инструкции...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытые select для хранения значений даты/времени статистики -->
+    <select id="statsDateFromDay" style="display: none;"></select>
+    <select id="statsDateFromMonth" style="display: none;"></select>
+    <select id="statsDateFromYear" style="display: none;"></select>
+    <select id="statsTimeFromHour" style="display: none;"></select>
+    <select id="statsTimeFromMinute" style="display: none;"></select>
+    <select id="statsDateToDay" style="display: none;"></select>
+    <select id="statsDateToMonth" style="display: none;"></select>
+    <select id="statsDateToYear" style="display: none;"></select>
+    <select id="statsTimeToHour" style="display: none;"></select>
+    <select id="statsTimeToMinute" style="display: none;"></select>
+
+    <!-- Скрытые select для хранения даты/времени глобальной статистики -->
+    <select id="globalStatsDateFromDay" style="display: none;"></select>
+    <select id="globalStatsDateFromMonth" style="display: none;"></select>
+    <select id="globalStatsDateFromYear" style="display: none;"></select>
+    <select id="globalStatsTimeFromHour" style="display: none;"></select>
+    <select id="globalStatsTimeFromMinute" style="display: none;"></select>
+    <select id="globalStatsDateToDay" style="display: none;"></select>
+    <select id="globalStatsDateToMonth" style="display: none;"></select>
+    <select id="globalStatsDateToYear" style="display: none;"></select>
+    <select id="globalStatsTimeToHour" style="display: none;"></select>
+    <select id="globalStatsTimeToMinute" style="display: none;"></select>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/customSelects.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/offline.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/datetime.js"></script>
+    <script src="js/extraCosts.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/rules.js"></script>
+    <script src="js/dragdrop.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/discounts.js"></script>
+    <script src="js/editing.js"></script>
+    <script src="js/photo.js"></script>  
+    <script src="js/cart.js"></script>
+    <script src="js/render.js?new"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/globalStats.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/extraIncomes.js"></script>
+    <script src="js/bookings.js"></script>  
+    <script src="js/app.js"></script>
+    <script src="js/instructions.js"></script>
+
+    <script>
+        function openEasterEggModal() {
+            const modal = document.getElementById('easterEggModal');
+            if (modal) modal.style.display = 'block';
+            resetEasterEggButton();
+        }
+        
+        function closeEasterEggModal() {
+            const modal = document.getElementById('easterEggModal');
+            if (modal) modal.style.display = 'none';
+            const audio = document.getElementById('easterEggAudio');
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            const img = document.getElementById('easterEggImage');
+            if (img) img.remove();
+            resetEasterEggButton();
+        }
+        
+        function resetEasterEggButton() {
+            const button = document.getElementById('easterEggButton');
+            if (button) button.style.display = 'inline-block';
+            const closeBtn = document.getElementById('easterEggImageCloseBtn');
+            if (closeBtn) closeBtn.remove();
+        }
+        
+        function activateEasterEgg() {
+            const button = document.getElementById('easterEggButton');
+            if (button) button.style.display = 'none';
+            
+            const content = document.getElementById('easterEggContent');
+            
+            const oldImg = document.getElementById('easterEggImage');
+            if (oldImg) oldImg.remove();
+            
+            const oldCloseBtn = document.getElementById('easterEggImageCloseBtn');
+            if (oldCloseBtn) oldCloseBtn.remove();
+            
+            const img = document.createElement('img');
+            img.id = 'easterEggImage';
+            img.src = 'assets/images/belka.jpg';
+            img.alt = 'Белочка';
+            img.style.maxWidth = '100%';
+            img.style.borderRadius = '16px';
+            img.style.marginTop = '16px';
+            img.style.marginBottom = '16px';
+            img.style.boxShadow = '0 4px 12px var(--shadow)';
+            
+            img.onerror = function() {
+                console.error("❌ Не удалось загрузить изображение");
+                this.alt = '🐿️ Белочка';
+                this.style.fontSize = '40px';
+                this.style.minHeight = '100px';
+                this.style.display = 'flex';
+                this.style.alignItems = 'center';
+                this.style.justifyContent = 'center';
+            };
+            
+            content.appendChild(img);
+            
+            let audio = document.getElementById('easterEggAudio');
+            if (!audio) {
+                audio = document.createElement('audio');
+                audio.id = 'easterEggAudio';
+                audio.src = 'assets/sounds/belka.mp3';
+                document.body.appendChild(audio);
+            }
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Audio play failed:", e));
+            
+            const closeImgBtn = document.createElement('button');
+            closeImgBtn.id = 'easterEggImageCloseBtn';
+            closeImgBtn.textContent = '❌ Закрыть';
+            closeImgBtn.style.background = 'var(--minus-bg)';
+            closeImgBtn.style.color = 'var(--minus-color)';
+            closeImgBtn.style.border = 'none';
+            closeImgBtn.style.borderRadius = '30px';
+            closeImgBtn.style.padding = '10px 20px';
+            closeImgBtn.style.fontSize = '14px';
+            closeImgBtn.style.cursor = 'pointer';
+            closeImgBtn.style.marginTop = '12px';
+            closeImgBtn.onclick = function() {
+                const imgToRemove = document.getElementById('easterEggImage');
+                if (imgToRemove) imgToRemove.remove();
+                const btnToRemove = document.getElementById('easterEggImageCloseBtn');
+                if (btnToRemove) btnToRemove.remove();
+                const audio = document.getElementById('easterEggAudio');
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+                const tykButton = document.getElementById('easterEggButton');
+                if (tykButton) tykButton.style.display = 'inline-block';
+            };
+            content.appendChild(closeImgBtn);
+        }
+        
+        function openSupportModal() {
+            const modal = document.getElementById('supportModal');
+            if (modal) {
+                document.getElementById('supportContact').value = '';
+                document.getElementById('supportMessage').value = '';
+                modal.style.display = 'block';
+            }
+        }
+        
+        function closeSupportModal() {
+            const modal = document.getElementById('supportModal');
+            if (modal) modal.style.display = 'none';
+        }
+        
+        async function sendSupportRequest() {
+            const contact = document.getElementById('supportContact').value.trim();
+            const message = document.getElementById('supportMessage').value.trim();
+            
+            if (!message) {
+                if (typeof showToast === 'function') showToast("Напишите сообщение", false);
+                return;
+            }
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('action', 'sendSupport');
+                params.append('participant', window.CURRENT_USER?.id || '');
+                params.append('userId', window.CURRENT_USER?.id || '');
+                params.append('userName', window.CURRENT_USER?.name || 'Пользователь');
+                params.append('message', message);
+                params.append('contact', contact);
+                
+                const response = await fetch(window.CENTRAL_API_URL || 'https://szhech-belochek.pages.dev/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (typeof showToast === 'function') showToast("Сообщение отправлено! Спасибо.", true);
+                    closeSupportModal();
+                } else {
+                    if (typeof showToast === 'function') showToast("Ошибка: " + (result.error || "неизвестная"), false);
+                }
+            } catch(e) {
+                console.error("Support error:", e);
+                if (typeof showToast === 'function') showToast("Ошибка отправки. Попробуйте позже.", false);
+            }
+        }
+        
+        function closeInstructionsModal() {
+            const modal = document.getElementById('instructionsModal');
+            if (modal) modal.style.display = 'none';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const namyaucano = document.getElementById('namyaucano');
+            if (namyaucano) {
+                namyaucano.style.textDecoration = 'none';
+                namyaucano.addEventListener('click', function() { openEasterEggModal(); });
+            }
+            
+            const supportBtn = document.getElementById('supportBtn');
+            if (supportBtn) {
+                supportBtn.addEventListener('click', function() { openSupportModal(); });
+            }
+            
+            const instructionsLink = document.getElementById('instructionsLink');
+            if (instructionsLink) {
+                instructionsLink.addEventListener('click', function() {
+                    if (typeof openInstructionsModal === 'function') openInstructionsModal();
+                });
+            }
+        });
+        
+        window.openSupportModal = openSupportModal;
+        window.closeSupportModal = closeSupportModal;
+        window.sendSupportRequest = sendSupportRequest;
+        window.closeInstructionsModal = closeInstructionsModal;
+    </script>
+    
+</body>
+</html>
