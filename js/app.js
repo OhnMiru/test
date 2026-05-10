@@ -81,6 +81,8 @@ function initApp() {
     const settingsDropdown = document.getElementById('settingsDropdown');
     const shareStatsBtn = document.getElementById('shareStatsBtn');
     const hideStatsBtn = document.getElementById('hideStatsBtn');
+    const blockImpersonationBtn = document.getElementById('blockImpersonationBtn');
+    const stockThresholdBtn = document.getElementById('stockThresholdBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const bookingsBtn = document.getElementById('bookingsButton');
     const addItemBtn = document.getElementById('addItemButton');
@@ -89,7 +91,7 @@ function initApp() {
     const statsBtn = document.getElementById('statsButton');
     const globalStatsBtn = document.getElementById('globalStatsBtn');
     const supportBtn = document.getElementById('supportBtn');
-  
+    
     if (bookingsBtn) {
         bookingsBtn.addEventListener('click', () => {
             if (typeof openBookingsModal === 'function') openBookingsModal();
@@ -132,7 +134,8 @@ function initApp() {
             if (typeof showGlobalStats === 'function') showGlobalStats();
         });
     }
-
+    
+    // Настройки (с обработкой кликов)
     if (settingsToggle) {
         // Убираем все старые обработчики
         const newToggle = settingsToggle.cloneNode(true);
@@ -144,7 +147,7 @@ function initApp() {
             console.log("⚙️ Кнопка настроек нажата");
             if (settingsDropdown) {
                 settingsDropdown.classList.toggle('hidden');
-                console.log("  - Новый класс:", settingsDropdown.className);
+                console.log(" - Новый класс:", settingsDropdown.className);
             }
         });
         
@@ -170,13 +173,29 @@ function initApp() {
         });
     }
     
+    // НОВАЯ КНОПКА: Запретить вход организатору
+    if (blockImpersonationBtn) {
+        blockImpersonationBtn.addEventListener('click', () => {
+            if (typeof toggleBlockImpersonation === 'function') toggleBlockImpersonation();
+            if (settingsDropdown) settingsDropdown.classList.add('hidden');
+        });
+    }
+    
+    // НОВАЯ КНОПКА: Порог остатка
+    if (stockThresholdBtn) {
+        stockThresholdBtn.addEventListener('click', () => {
+            if (typeof openStockThresholdModal === 'function') openStockThresholdModal();
+            if (settingsDropdown) settingsDropdown.classList.add('hidden');
+        });
+    }
+    
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             if (typeof logout === 'function') logout();
             if (settingsDropdown) settingsDropdown.classList.add('hidden');
         });
     }
-
+    
     // Загружаем комментарии
     if (typeof loadAllComments === 'function') {
         loadAllComments();
@@ -213,6 +232,7 @@ window.onclick = function(event) {
     const commentModal = document.getElementById('commentModal');
     const supportModal = document.getElementById('supportModal');
     const easterEggModal = document.getElementById('easterEggModal');
+    const thresholdModal = document.querySelector('.threshold-modal');
     
     if (event.target === historyModal && typeof closeHistory === 'function') closeHistory();
     if (event.target === cartModal && typeof closeCartModal === 'function') closeCartModal();
@@ -227,6 +247,7 @@ window.onclick = function(event) {
     if (event.target === commentModal && typeof closeCommentModal === 'function') closeCommentModal();
     if (event.target === supportModal && typeof closeSupportModal === 'function') closeSupportModal();
     if (event.target === easterEggModal && typeof closeEasterEggModal === 'function') closeEasterEggModal();
+    if (thresholdModal && event.target === thresholdModal) thresholdModal.remove();
 };
 
 // Инициализация после полной загрузки DOM
@@ -247,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof toggleTheme === 'function') toggleTheme();
         });
     }
-
+    
     // Кнопка входа
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
@@ -255,21 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof login === 'function') login();
         });
     }
-
+    
     // Вход по Enter
     const loginInput = document.getElementById('loginInput');
     const passwordInput = document.getElementById('passwordInput');
     if (loginInput) {
-        loginInput.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter' && typeof login === 'function') login(); 
+        loginInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && typeof login === 'function') login();
         });
     }
     if (passwordInput) {
-        passwordInput.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter' && typeof login === 'function') login(); 
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && typeof login === 'function') login();
         });
     }
-
+    
     // Поиск
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -277,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof filterAndSort === 'function') filterAndSort();
         });
     }
-
+    
     // Сброс фильтров
     const resetBtn = document.getElementById('resetFilters');
     if (resetBtn) {
@@ -285,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof resetAllFilters === 'function') resetAllFilters();
         });
     }
-
+    
     // Проверяем авторизацию
     if (typeof checkExistingAuth === 'function') {
         if (!checkExistingAuth()) {
@@ -315,3 +336,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Экспортируем функцию в глобальную область
 window.loadMerchTypes = loadMerchTypes;
+window.initApp = initApp;
