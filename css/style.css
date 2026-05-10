@@ -828,6 +828,86 @@ h1 {
     animation: pulse 2s infinite;
 }
 
+.stock-warning {
+    color: #e74c3c !important;
+    font-weight: bold;
+}
+
+.stock-warning .stock {
+    color: #e74c3c !important;
+}
+
+.impersonate-blocked {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.3);
+}
+
+.impersonate-blocked .impersonate-user-name {
+    text-decoration: line-through;
+}
+
+.blocked-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    margin-left: 8px;
+}
+
+.threshold-modal .modal-content {
+    max-width: 350px;
+    text-align: center;
+}
+
+.threshold-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 24px;
+    text-align: center;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    margin: 20px 0;
+}
+
+.threshold-input:focus {
+    outline: none;
+    border-color: var(--btn-bg);
+}
+
+.threshold-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.threshold-btn {
+    padding: 10px 24px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.threshold-save {
+    background: var(--btn-bg);
+    color: white;
+}
+
+.threshold-cancel {
+    background: var(--minus-bg);
+    color: var(--minus-color);
+}
+
+.threshold-reset {
+    background: var(--badge-bg);
+    color: var(--text-muted);
+}
+
 @keyframes pulse {
     0% {
         opacity: 0.3;
