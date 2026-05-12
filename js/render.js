@@ -1,3 +1,6 @@
+Вот **исправленный полный файл js/render.js** (убраны дублирования и лишние скобки):
+
+```javascript
 // ========== РЕНДЕР КАРТОЧЕК ==========
 function renderCards() {
     const container = document.getElementById('cards-container');
@@ -22,8 +25,7 @@ function renderCards() {
         const attribute1 = card.attribute1 || "";
         const attribute2 = card.attribute2 || "";
         
-        // НОВОЕ: проверяем порог остатка
-        const threshold = CURRENT_USER.stockThreshold || 0;
+        const threshold = (CURRENT_USER && CURRENT_USER.stockThreshold) || 0;
         const isStockWarning = threshold > 0 && stock <= threshold && stock > 0;
         const stockWarningClass = isStockWarning ? 'stock-warning' : '';
         
@@ -59,7 +61,6 @@ function renderCards() {
         
         const sortHandleHtml = currentSortBy === 'custom' ? '<span class="sort-handle" style="cursor: grab; margin-left: 8px; opacity: 0.6;">⋮⋮</span>' : '';
         
-        // НОВОЕ: строки остатка с классом для подсветки
         cardDiv.innerHTML = `
             <div class="info">
                 <div class="title-row" style="display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-bottom: 4px;">
@@ -179,13 +180,11 @@ function updateCardInDOM(cardId, updatedData) {
         const newStock = updatedData.stock;
         stockSpan.textContent = `Остаток: ${newStock} шт`;
         
-        // НОВОЕ: обновляем класс подсветки при изменении остатка
-        const threshold = CURRENT_USER.stockThreshold || 0;
+        const threshold = (CURRENT_USER && CURRENT_USER.stockThreshold) || 0;
         const isStockWarning = threshold > 0 && newStock <= threshold && newStock > 0;
         if (stockRow) {
             if (isStockWarning) {
                 stockRow.classList.add('stock-warning');
-                // Добавляем иконку предупреждения если её нет
                 if (!stockRow.querySelector('.stock-warning-icon')) {
                     const warningIcon = document.createElement('span');
                     warningIcon.className = 'stock-warning-icon';
@@ -349,234 +348,7 @@ function updateCommentIndicators() {
 }
 
 // Экспортируем функции
-window.showCommentModal = showCommentModal;
-window.closeCommentModal = closeCommentModal;
-window.saveCommentAndClose = saveCommentAndClose;
-window.updateCommentIndicators = updateCommentIndicators;
-window.updateCardInDOM = updateCardInDOM;}
-
-function handleAddToCart(e) {
-    const btn = e.currentTarget;
-    const id = parseInt(btn.dataset.id);
-    addToCart(id);
-}
-
-async function handleButtonClick(e) {
-    const btn = e.currentTarget;
-    const id = parseInt(btn.dataset.id);
-    const delta = parseInt(btn.dataset.delta);
-    await updateStock(id, delta);
-}
-
-function updateCardInDOM(cardId, updatedData) {
-    const cardElement = document.querySelector(`.card[data-id="${cardId}"]`);
-    if (!cardElement) return;
-    
-    const typeBadge = cardElement.querySelector('.type-badge');
-    if (typeBadge && updatedData.type !== undefined) {
-        let typeDisplayText = updatedData.type;
-        const attr1 = updatedData.attribute1 || "";
-        const attr2 = updatedData.attribute2 || "";
-        if (attr1) typeDisplayText += ` | ${attr1}`;
-        if (attr2) typeDisplayText += ` | ${attr2}`;
-        typeBadge.textContent = typeDisplayText;
-        
-        const typeColor = updatedData.type ? getTypeColor(updatedData.type) : '#c25d1a';
-        typeBadge.style.background = `${typeColor}20`;
-        typeBadge.style.color = typeColor;
-    }
-    
-    const nameElement = cardElement.querySelector('.name');
-    if (nameElement && updatedData.name !== undefined) {
-        nameElement.textContent = updatedData.name;
-        nameElement.setAttribute('data-name', updatedData.name);
-    }
-    
-    const hasComment = commentsCache.has(cardId) && commentsCache.get(cardId).comment && commentsCache.get(cardId).comment.trim() !== "";
-    const commentBtn = cardElement.querySelector('.comment-icon');
-    if (commentBtn) {
-        if (hasComment) {
-            commentBtn.classList.add('has-comment');
-            let badge = commentBtn.querySelector('.comment-badge');
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'comment-badge';
-                badge.style.position = 'absolute';
-                badge.style.top = '-4px';
-                badge.style.right = '-6px';
-                badge.style.width = '8px';
-                badge.style.height = '8px';
-                badge.style.background = '#f39c12';
-                badge.style.borderRadius = '50%';
-                commentBtn.appendChild(badge);
-            }
-        } else {
-            commentBtn.classList.remove('has-comment');
-            const badge = commentBtn.querySelector('.comment-badge');
-            if (badge) badge.remove();
-        }
-    }
-    
-    const stockSpan = cardElement.querySelector('.stock');
-    if (stockSpan && updatedData.stock !== undefined) {
-        stockSpan.textContent = `Остаток: ${updatedData.stock} шт`;
-        if (updatedData.stock === 0) {
-            cardElement.classList.add('out-of-stock');
-        } else {
-            cardElement.classList.remove('out-of-stock');
-        }
-    }
-    
-    const totalSpan = cardElement.querySelector('.total');
-    if (totalSpan && updatedData.total !== undefined) {
-        totalSpan.textContent = `📦 Всего: ${updatedData.total} шт`;
-    }
-    
-    const priceSpan = cardElement.querySelector('.price');
-    if (priceSpan && updatedData.price !== undefined) {
-        priceSpan.textContent = `💰 Цена: ${updatedData.price} ₽`;
-    }
-}
-
-// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С КОММЕНТАРИЯМИ (ОПТИМИЗИРОВАНЫ) ==========
-
-async function showCommentModal(itemId, itemName) {
-    const modal = document.getElementById('commentModal');
-    if (!modal) return;
-    
-    const commentItemName = document.getElementById('commentItemName');
-    const commentTextarea = document.getElementById('commentText');
-    const lastUpdatedEl = document.getElementById('commentLastUpdated');
-    
-    // Показываем модальное окно сразу
-    modal.style.display = 'block';
-    
-    // Показываем индикатор загрузки
-    if (commentItemName) {
-        commentItemName.innerHTML = `📦 ${escapeHtml(itemName)}`;
-    }
-    if (commentTextarea) {
-        commentTextarea.value = 'Загрузка комментария...';
-        commentTextarea.disabled = true;
-    }
-    if (lastUpdatedEl) {
-        lastUpdatedEl.innerHTML = '';
-    }
-    
-    // Получаем текущий комментарий (из кеша или с сервера)
-    let currentComment = "";
-    let lastUpdated = null;
-    
-    // Сначала пробуем из кеша
-    if (commentsCache.has(itemId) && commentsCache.get(itemId).comment !== undefined) {
-        currentComment = commentsCache.get(itemId).comment || "";
-        lastUpdated = commentsCache.get(itemId).lastUpdated || null;
-    }
-    
-    // Если в кеше нет, грузим с сервера
-    if (!currentComment && window.isOnline) {
-        try {
-            const commentData = await getComment(itemId);
-            if (commentData && commentData.comment) {
-                currentComment = commentData.comment;
-                lastUpdated = commentData.lastUpdated;
-                commentsCache.set(itemId, { comment: currentComment, lastUpdated: lastUpdated });
-                if (typeof saveCommentsToLocal === 'function') saveCommentsToLocal();
-            }
-        } catch(e) {
-            console.error("Error loading comment:", e);
-        }
-    }
-    
-    // Заполняем данные
-    if (commentItemName) {
-        commentItemName.innerHTML = `📦 ${escapeHtml(itemName)}`;
-    }
-    if (commentTextarea) {
-        commentTextarea.value = currentComment || '';
-        commentTextarea.disabled = false;
-    }
-    if (lastUpdatedEl) {
-        lastUpdatedEl.innerHTML = lastUpdated ? `Последнее изменение: ${new Date(lastUpdated).toLocaleString('ru-RU')}` : '';
-    }
-    
-    modal.setAttribute('data-item-id', itemId);
-    modal.setAttribute('data-item-name', itemName);
-}
-
-function closeCommentModal() {
-    const modal = document.getElementById('commentModal');
-    if (modal) {
-        modal.style.display = 'none';
-        const commentTextarea = document.getElementById('commentText');
-        if (commentTextarea) {
-            commentTextarea.value = '';
-        }
-    }
-}
-
-async function saveCommentAndClose() {
-    const modal = document.getElementById('commentModal');
-    if (!modal) return;
-    
-    const itemId = parseInt(modal.getAttribute('data-item-id'));
-    const commentText = document.getElementById('commentText')?.value || '';
-    
-    if (isNaN(itemId)) return;
-    
-    // Показываем индикатор сохранения
-    const saveBtn = document.querySelector('#commentModal .edit-save-btn');
-    const originalText = saveBtn?.textContent;
-    if (saveBtn) {
-        saveBtn.textContent = '⏳ Сохранение...';
-        saveBtn.disabled = true;
-    }
-    
-    const success = await saveComment(itemId, commentText);
-    
-    if (saveBtn) {
-        saveBtn.textContent = originalText;
-        saveBtn.disabled = false;
-    }
-    
-    if (success) {
-        updateCommentIndicators();
-        closeCommentModal();
-    }
-}
-
-function updateCommentIndicators() {
-    document.querySelectorAll('.card').forEach(card => {
-        const itemId = parseInt(card.getAttribute('data-id'));
-        const hasComment = commentsCache.has(itemId) && commentsCache.get(itemId).comment && commentsCache.get(itemId).comment.trim() !== "";
-        
-        const commentBtn = card.querySelector('.comment-icon');
-        if (commentBtn) {
-            if (hasComment) {
-                commentBtn.classList.add('has-comment');
-                let badge = commentBtn.querySelector('.comment-badge');
-                if (!badge) {
-                    badge = document.createElement('span');
-                    badge.className = 'comment-badge';
-                    badge.style.position = 'absolute';
-                    badge.style.top = '-4px';
-                    badge.style.right = '-6px';
-                    badge.style.width = '8px';
-                    badge.style.height = '8px';
-                    badge.style.background = '#f39c12';
-                    badge.style.borderRadius = '50%';
-                    commentBtn.appendChild(badge);
-                }
-            } else {
-                commentBtn.classList.remove('has-comment');
-                const badge = commentBtn.querySelector('.comment-badge');
-                if (badge) badge.remove();
-            }
-        }
-    });
-}
-
-// Экспортируем функции в глобальную область
+window.renderCards = renderCards;
 window.showCommentModal = showCommentModal;
 window.closeCommentModal = closeCommentModal;
 window.saveCommentAndClose = saveCommentAndClose;
