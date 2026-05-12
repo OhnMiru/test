@@ -145,14 +145,13 @@ function openStockThresholdModal() {
             </div>
             <div style="padding: 20px;">
                 <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
-                    Когда остаток товара станет меньше или равен этому числу,<br>
+                    Когда остаток товара станет меньше этого числа или равен ему,<br>
                     текст "Остаток: X шт" будет окрашен в <span style="color: #e74c3c;">красный цвет</span>.
                 </p>
                 <input type="number" id="stockThresholdInput" class="threshold-input" 
                        value="${CURRENT_USER.stockThreshold || 0}" min="0" step="1">
                 <div class="threshold-buttons">
                     <button class="threshold-btn threshold-reset" onclick="resetStockThreshold()">Сбросить</button>
-                    <button class="threshold-btn threshold-cancel" onclick="this.closest('.modal').remove()">Отмена</button>
                     <button class="threshold-btn threshold-save" onclick="saveStockThreshold()">Сохранить</button>
                 </div>
             </div>
