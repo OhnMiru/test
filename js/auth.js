@@ -83,7 +83,7 @@ function updatePrivacyButtonsUI() {
         blockBtn.style.opacity = CURRENT_USER.blockImpersonation ? '1' : '0.7';
     }
     if (thresholdBtn) {
-        const thresholdText = CURRENT_USER.stockThreshold > 0 ? ` (⚠️ ≤ ${CURRENT_USER.stockThreshold})` : ' (выкл)';
+        const thresholdText = CURRENT_USER.stockThreshold > 0 ? ` (⚠️ ≤ ${CURRENT_USER.stockThreshold})` : ' (0 = только закончившиеся)';
         thresholdBtn.innerHTML = `🎨 Порог остатка${thresholdText}`;
     }
 }
@@ -145,14 +145,14 @@ function openStockThresholdModal() {
             </div>
             <div style="padding: 20px;">
                 <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
-                    Когда остаток товара станет меньше этого числа или равен ему,<br>
+                    Когда остаток товара станет меньше или равен этому числу,<br>
                     текст "Остаток: X шт" будет окрашен в <span style="color: #e74c3c;">красный цвет</span>.
                 </p>
                 <input type="number" id="stockThresholdInput" class="threshold-input" 
                        value="${CURRENT_USER.stockThreshold || 0}" min="0" step="1">
                 <div class="threshold-buttons">
-                    <button class="threshold-btn threshold-reset" onclick="resetStockThreshold()">Сбросить</button>
-                    <button class="threshold-btn threshold-save" onclick="saveStockThreshold()">Сохранить</button>
+                    <button class="threshold-btn threshold-reset" id="thresholdResetBtn">Сбросить</button>
+                    <button class="threshold-btn threshold-save" id="thresholdSaveBtn">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -161,38 +161,62 @@ function openStockThresholdModal() {
     
     const input = document.getElementById('stockThresholdInput');
     if (input) input.focus();
-}
-
-function saveStockThreshold() {
-    const input = document.getElementById('stockThresholdInput');
-    const value = parseInt(input.value) || 0;
-    CURRENT_USER.stockThreshold = Math.max(0, value);
-    updatePrivacyButtonsUI();
-    localStorage.setItem('merch_privacy', JSON.stringify({ 
-        shareStats: CURRENT_USER.shareStats, 
-        hideStats: CURRENT_USER.hideStats,
-        blockImpersonation: CURRENT_USER.blockImpersonation,
-        stockThreshold: CURRENT_USER.stockThreshold
-    }));
-    savePrivacySettings();
     
-    const modal = document.querySelector('.threshold-modal');
-    if (modal) modal.remove();
-    
-    if (typeof filterAndSort === 'function') {
-        filterAndSort();
+    // Кнопка Сбросить - сразу сохраняет 0
+    const resetBtn = document.getElementById('thresholdResetBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            CURRENT_USER.stockThreshold = 0;
+            updatePrivacyButtonsUI();
+            localStorage.setItem('merch_privacy', JSON.stringify({ 
+                shareStats: CURRENT_USER.shareStats, 
+                hideStats: CURRENT_USER.hideStats,
+                blockImpersonation: CURRENT_USER.blockImpersonation,
+                stockThreshold: CURRENT_USER.stockThreshold
+            }));
+            savePrivacySettings();
+            
+            const modalEl = document.querySelector('.threshold-modal');
+            if (modalEl) modalEl.remove();
+            
+            if (typeof filterAndSort === 'function') {
+                filterAndSort();
+            }
+            
+            showToast('🔴 Подсветка: только когда товар закончился (0)', true);
+        });
     }
     
-    if (CURRENT_USER.stockThreshold === 0) {
-        showToast('🔴 Подсветка: только когда товар закончился (0)', true);
-    } else {
-        showToast(`🎨 Порог остатка установлен: ≤ ${CURRENT_USER.stockThreshold}`, true);
+    // Кнопка Сохранить - берёт значение из поля
+    const saveBtn = document.getElementById('thresholdSaveBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const inputVal = document.getElementById('stockThresholdInput');
+            const value = parseInt(inputVal.value) || 0;
+            CURRENT_USER.stockThreshold = Math.max(0, value);
+            updatePrivacyButtonsUI();
+            localStorage.setItem('merch_privacy', JSON.stringify({ 
+                shareStats: CURRENT_USER.shareStats, 
+                hideStats: CURRENT_USER.hideStats,
+                blockImpersonation: CURRENT_USER.blockImpersonation,
+                stockThreshold: CURRENT_USER.stockThreshold
+            }));
+            savePrivacySettings();
+            
+            const modalEl = document.querySelector('.threshold-modal');
+            if (modalEl) modalEl.remove();
+            
+            if (typeof filterAndSort === 'function') {
+                filterAndSort();
+            }
+            
+            if (CURRENT_USER.stockThreshold === 0) {
+                showToast('🔴 Подсветка: только когда товар закончился (0)', true);
+            } else {
+                showToast(`🎨 Порог остатка установлен: ≤ ${CURRENT_USER.stockThreshold}`, true);
+            }
+        });
     }
-}
-
-function resetStockThreshold() {
-    const input = document.getElementById('stockThresholdInput');
-    if (input) input.value = '0';
 }
 
 function togglePasswordVisibility() {
