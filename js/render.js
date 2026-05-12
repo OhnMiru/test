@@ -23,7 +23,7 @@ function renderCards() {
         const attribute2 = card.attribute2 || "";
         
         const threshold = (CURRENT_USER && CURRENT_USER.stockThreshold) || 0;
-        const isStockWarning = threshold > 0 && stock <= threshold && stock > 0;
+        const isStockWarning = (threshold > 0 && stock <= threshold && stock > 0) || (threshold === 0 && stock === 0);
         const stockWarningClass = isStockWarning ? 'stock-warning' : '';
         
         const hasComment = commentsCache.has(id) && commentsCache.get(id).comment && commentsCache.get(id).comment.trim() !== "";
