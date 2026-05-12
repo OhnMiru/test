@@ -1,6 +1,3 @@
-Вот **исправленный полный файл js/render.js** (убраны дублирования и лишние скобки):
-
-```javascript
 // ========== РЕНДЕР КАРТОЧЕК ==========
 function renderCards() {
     const container = document.getElementById('cards-container');
