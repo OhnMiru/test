@@ -183,7 +183,11 @@ function saveStockThreshold() {
         filterAndSort();
     }
     
-    showToast(CURRENT_USER.stockThreshold > 0 ? `Порог остатка установлен: ≤ ${CURRENT_USER.stockThreshold}` : 'Подсветка порога остатка отключена', true);
+    if (CURRENT_USER.stockThreshold === 0) {
+        showToast('🔴 Подсветка: только когда товар закончился (0)', true);
+    } else {
+        showToast(`🎨 Порог остатка установлен: ≤ ${CURRENT_USER.stockThreshold}`, true);
+    }
 }
 
 function resetStockThreshold() {
