@@ -898,14 +898,9 @@ h1 {
     color: white;
 }
 
-.threshold-cancel {
+.threshold-reset {
     background: var(--minus-bg);
     color: var(--minus-color);
-}
-
-.threshold-reset {
-    background: var(--badge-bg);
-    color: var(--text-muted);
 }
 
 @keyframes pulse {
