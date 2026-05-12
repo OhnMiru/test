@@ -133,7 +133,6 @@ function toggleBlockImpersonation() {
     showToast(CURRENT_USER.blockImpersonation ? '🔒 Организатор больше не сможет войти в ваш аккаунт' : '🔓 Организатор снова может входить в ваш аккаунт', true);
 }
 
-// НОВАЯ ФУНКЦИЯ: Открыть модальное окно для установки порога остатка
 function openStockThresholdModal() {
     const modal = document.createElement('div');
     modal.className = 'modal threshold-modal';
@@ -161,7 +160,6 @@ function openStockThresholdModal() {
     `;
     document.body.appendChild(modal);
     
-    // Фокус на поле ввода
     const input = document.getElementById('stockThresholdInput');
     if (input) input.focus();
 }
@@ -179,11 +177,9 @@ function saveStockThreshold() {
     }));
     savePrivacySettings();
     
-    // Закрыть модальное окно
     const modal = document.querySelector('.threshold-modal');
     if (modal) modal.remove();
     
-    // Перерисовать карточки с новой подсветкой
     if (typeof filterAndSort === 'function') {
         filterAndSort();
     }
@@ -208,7 +204,6 @@ function togglePasswordVisibility() {
     }
 }
 
-// ========== ВХОД ==========
 async function login() {
     const loginInput = document.getElementById('loginInput');
     const passwordInput = document.getElementById('passwordInput');
@@ -248,7 +243,6 @@ async function login() {
             await loadPrivacySettings();
             loadPendingOperations();
             
-            // Очистка старых операций
             if (pendingOperations && pendingOperations.length > 0) {
                 const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
                 const oldOps = pendingOperations.filter(op => op.timestamp && op.timestamp < threeDaysAgo);
@@ -290,7 +284,6 @@ async function login() {
                 sheetLink.href = CURRENT_USER.sheetUrl;
             }
             
-            // Показываем/скрываем кнопки организатора
             const globalStatsBtn = document.getElementById('globalStatsBtn');
             const impersonateBtn = document.getElementById('impersonateBtn');
             if (CURRENT_USER.role === 'organizer') {
@@ -382,8 +375,6 @@ function logout() {
     if (historySyncInterval) clearInterval(historySyncInterval);
 }
 
-// ========== ФУНКЦИИ ДЛЯ ИМПЕРСОНАЦИИ (ВХОД ОТ ЛИЦА ОРГАНИЗАТОРА) ==========
-
 function hideOrganizerButtons() {
     const globalStatsBtn = document.getElementById('globalStatsBtn');
     const impersonateBtn = document.getElementById('impersonateBtn');
@@ -469,3 +460,187 @@ function showImpersonateUI() {
 
 async function loadImpersonateUserList() {
     const userListContainer = document.getElementById('impersonateUserList');
+    if (!userListContainer) return;
+    
+    try {
+        const response = await fetch(`${CENTRAL_API_URL}?action=getAvailableUsers`);
+        const data = await response.json();
+        
+        if (data && data.users) {
+            const users = data.users.filter(u => u.id !== CURRENT_USER.id && !u.blockImpersonation);
+            
+            if (users.length === 0) {
+                userListContainer.innerHTML = '<div style="padding: 12px; color: var(--text-muted); text-align: center;">Нет доступных пользователей</div>';
+                return;
+            }
+            
+            userListContainer.innerHTML = users.map(user => `
+                <div class="impersonate-user-item" data-user-id="${user.id}" data-user-name="${user.name}" data-user-role="${user.role}" style="padding: 10px 12px; cursor: pointer; border-radius: 8px; transition: background 0.2s; border-bottom: 1px solid var(--border-color);">
+                    <div style="font-weight: bold; color: var(--text-primary);">${escapeHtml(user.name)}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${user.role === 'organizer' ? 'Организатор' : 'Художник'}</div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.impersonate-user-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const userId = item.dataset.userId;
+                    const userName = item.dataset.userName;
+                    const userRole = item.dataset.userRole;
+                    impersonateUser(userId, userName, userRole);
+                    const dropdown = document.getElementById('impersonateDropdown');
+                    if (dropdown) dropdown.classList.remove('show');
+                });
+                item.addEventListener('mouseenter', (e) => {
+                    e.currentTarget.style.background = 'var(--badge-bg)';
+                });
+                item.addEventListener('mouseleave', (e) => {
+                    e.currentTarget.style.background = '';
+                });
+            });
+        }
+    } catch(e) {
+        console.error("Error loading users:", e);
+        userListContainer.innerHTML = '<div style="padding: 12px; color: var(--minus-color); text-align: center;">Ошибка загрузки</div>';
+    }
+}
+
+async function impersonateUser(userId, userName, userRole) {
+    if (isImpersonating) {
+        showToast("Сначала выйдите из текущего режима", false);
+        return;
+    }
+    
+    originalUserId = CURRENT_USER.id;
+    originalUserName = CURRENT_USER.name;
+    impersonatedUserId = userId;
+    impersonatedUserName = userName;
+    impersonatedUserRole = userRole;
+    isImpersonating = true;
+    
+    CURRENT_USER.id = userId;
+    CURRENT_USER.name = userName;
+    CURRENT_USER.role = userRole;
+    CURRENT_USER.sheetUrl = null;
+    
+    try {
+        const response = await fetch(`${CENTRAL_API_URL}?action=getUserInfo&user=${encodeURIComponent(userId)}`);
+        const userInfo = await response.json();
+        if (userInfo && userInfo.sheetUrl) {
+            CURRENT_USER.sheetUrl = userInfo.sheetUrl;
+        }
+    } catch(e) {
+        console.error("Error getting user info:", e);
+    }
+    
+    hideOrganizerButtons();
+    showImpersonateBanner();
+    
+    const roleIcon = CURRENT_USER.role === 'organizer' ? '📊' : '🍌';
+    document.getElementById('shopTitle').innerHTML = `${roleIcon} ${CURRENT_USER.name} — учёт мерча`;
+    
+    const sheetLink = document.getElementById('sheetLink');
+    if (sheetLink && CURRENT_USER.sheetUrl && CURRENT_USER.sheetUrl !== '#') {
+        sheetLink.href = CURRENT_USER.sheetUrl;
+    }
+    
+    if (typeof loadData === 'function') {
+        loadData(true, true);
+    }
+    if (typeof loadHistory === 'function') {
+        loadHistory();
+    }
+    if (typeof loadRules === 'function') {
+        loadRules();
+    }
+    if (typeof loadExtraCosts === 'function') loadExtraCosts();
+    if (typeof loadExtraIncomes === 'function') loadExtraIncomes();
+    if (typeof loadAllComments === 'function') loadAllComments();
+    if (typeof loadBookings === 'function') {
+        loadBookings().catch(e => console.warn("Bookings load error:", e));
+    }
+    
+    showToast(`Вы вошли как ${userName}`, true);
+}
+
+function showImpersonateBanner() {
+    let banner = document.getElementById('impersonateBanner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'impersonateBanner';
+        banner.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #f39c12; color: #333; text-align: center; padding: 8px; font-size: 13px; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;';
+        document.body.appendChild(banner);
+    }
+    const roleText = impersonatedUserRole === 'organizer' ? 'организатора' : 'художника';
+    banner.innerHTML = `
+        <span>⚠️ Вы действуете от лица ${roleText} <strong>${escapeHtml(impersonatedUserName)}</strong> (режим организатора)</span>
+        <button id="stopImpersonateBtn" style="background: #e74c3c; color: white; border: none; border-radius: 30px; padding: 4px 16px; font-size: 12px; cursor: pointer;">Выйти</button>
+    `;
+    const stopBtn = document.getElementById('stopImpersonateBtn');
+    if (stopBtn) {
+        stopBtn.addEventListener('click', () => {
+            stopImpersonating();
+        });
+    }
+    banner.style.display = 'flex';
+}
+
+function stopImpersonating() {
+    if (!isImpersonating) return;
+    
+    CURRENT_USER.id = originalUserId;
+    CURRENT_USER.name = originalUserName;
+    CURRENT_USER.role = 'organizer';
+    const savedUser = sessionStorage.getItem('currentUser');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            CURRENT_USER.sheetUrl = user.sheetUrl;
+            CURRENT_USER.blockImpersonation = user.blockImpersonation === true;
+            CURRENT_USER.stockThreshold = user.stockThreshold || 0;
+        } catch(e) {}
+    }
+    
+    isImpersonating = false;
+    originalUserId = null;
+    originalUserName = null;
+    impersonatedUserId = null;
+    impersonatedUserName = null;
+    impersonatedUserRole = null;
+    
+    showOrganizerButtons();
+    const banner = document.getElementById('impersonateBanner');
+    if (banner) banner.remove();
+    
+    const roleIcon = '📊';
+    document.getElementById('shopTitle').innerHTML = `${roleIcon} ${CURRENT_USER.name} — учёт мерча`;
+    
+    const sheetLink = document.getElementById('sheetLink');
+    if (sheetLink && CURRENT_USER.sheetUrl && CURRENT_USER.sheetUrl !== '#') {
+        sheetLink.href = CURRENT_USER.sheetUrl;
+    }
+    
+    if (typeof loadData === 'function') {
+        loadData(true, true);
+    }
+    if (typeof loadHistory === 'function') {
+        loadHistory();
+    }
+    if (typeof loadRules === 'function') {
+        loadRules();
+    }
+    if (typeof loadExtraCosts === 'function') loadExtraCosts();
+    if (typeof loadExtraIncomes === 'function') loadExtraIncomes();
+    if (typeof loadAllComments === 'function') loadAllComments();
+    if (typeof loadBookings === 'function') {
+        loadBookings().catch(e => console.warn("Bookings load error:", e));
+    }
+    
+    showToast(`Вы вернулись в свой аккаунт (${CURRENT_USER.name})`, true);
+}
+
+function getRealUserParam() {
+    if (isImpersonating && originalUserId) {
+        return `&realUser=${encodeURIComponent(originalUserId)}`;
+    }
+    return "";
+}
