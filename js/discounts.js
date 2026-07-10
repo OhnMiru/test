@@ -105,10 +105,48 @@ function updateItemDiscountFromInput() {
     }
 }
 
+function distributeFixedDiscount(products, totalDiscount) {
+    const discountMap = new Map();
+    products.forEach(p => discountMap.set(p.id, 0));
+
+    let activeIds = new Set(products.map(p => p.id));
+    const priceMap = new Map(products.map(p => [p.id, p.price]));
+    let pool = totalDiscount;
+
+    while (activeIds.size > 0 && pool > 0) {
+        const share = pool / activeIds.size;
+        let excess = 0;
+        const zeroedNow = [];
+
+        for (const id of activeIds) {
+            const price = priceMap.get(id);
+            const currentDiscount = discountMap.get(id);
+            const capacity = price - currentDiscount;
+
+            if (capacity <= share) {
+                discountMap.set(id, currentDiscount + capacity);
+                excess += share - capacity;
+                zeroedNow.push(id);
+            } else {
+                discountMap.set(id, currentDiscount + share);
+            }
+        }
+
+        zeroedNow.forEach(id => activeIds.delete(id));
+        pool = excess;
+
+        if (zeroedNow.length === 0) break;
+    }
+
+    return discountMap;
+}
+
+
 function applyItemDiscount() {
     const typeSelect = document.getElementById('itemDiscountTypeSelect');
     const type = typeSelect ? typeSelect.getAttribute('data-value') || 'percent' : 'percent';
     const value = parseFloat(document.getElementById('itemDiscountValue').value) || 0;
+    
     if (selectedDiscountProducts.size === 0) {
         showToast("Выберите товары для скидки", false);
         return;
@@ -117,10 +155,22 @@ function applyItemDiscount() {
         showToast("Введите корректную сумму скидки", false);
         return;
     }
-    for (const productId of selectedDiscountProducts) {
-        if (!itemDiscounts[productId]) itemDiscounts[productId] = {};
-        itemDiscounts[productId] = { type: type, value: value };
+
+    if (type === 'fixed') {
+        const products = Array.from(selectedDiscountProducts).map(id => {
+            const card = originalCardsData.find(c => c.id === id);
+            return { id: id, price: card ? card.price : 0 };
+        });
+        const discountMap = distributeFixedDiscount(products, value);
+        for (const productId of selectedDiscountProducts) {
+            itemDiscounts[productId] = { type: 'fixed', value: discountMap.get(productId) || 0 };
+        }
+    } else {
+        for (const productId of selectedDiscountProducts) {
+            itemDiscounts[productId] = { type: type, value: value };
+        }
     }
+
     selectedDiscountProducts.clear();
     discountProductListVisible = false;
     const container = document.getElementById('productDiscountList');
@@ -133,22 +183,4 @@ function resetItemDiscounts() {
     itemDiscounts = {};
     updateCartUI();
     showToast("Скидки на товары сброшены", true);
-}
-
-function getBestDiscountForItem(id, originalPrice, qty, subtotal) {
-    let finalPrice = originalPrice;
-    let discountValue = 0;
-    let discountType = null;
-    if (itemDiscounts[id]) {
-        const disc = itemDiscounts[id];
-        discountType = disc.type;
-        if (disc.type === 'percent') {
-            finalPrice = originalPrice * (1 - disc.value / 100);
-            discountValue = disc.value;
-        } else if (disc.type === 'fixed') {
-            finalPrice = Math.max(0, originalPrice - disc.value);
-            discountValue = disc.value;
-        }
-    }
-    return { price: finalPrice, discountValue: discountValue, discountType: discountType };
 }
