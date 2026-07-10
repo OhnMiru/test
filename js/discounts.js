@@ -219,14 +219,6 @@ function applyItemDiscount() {
     showToast("Скидка применена к выбранным товарам", true);
 }
 
-    selectedDiscountProducts.clear();
-    discountProductListVisible = false;
-    const container = document.getElementById('productDiscountList');
-    if (container) container.style.display = 'none';
-    updateCartUI();
-    showToast("Скидка применена к выбранным товарам", true);
-}
-
 function resetItemDiscounts() {
     itemDiscounts = {};
     updateCartUI();
