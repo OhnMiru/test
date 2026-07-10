@@ -658,7 +658,7 @@ function onDetailTypeChangeCustom(selectedType) {
         
         for (const attr of attributes) {
             attrsHtml += `<label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
-                <input type="checkbox" class="detail-attr-checkbox" data-attr-name="${escapeHtml(attr.name)}" data-attr-key="${attr.key}" data-attr-values='${JSON.stringify(attr.values)}' style="accent-color: #f39c12; width: 16px; height: 16px;"> 
+                <input type="checkbox" class="detail-attr-checkbox" data-attr-name="${escapeHtml(attr.name)}" data-attr-key="${attr.key}" data-attr-values='${JSON.stringify(attr.values)}' style="accent-color: var(--minus-bg); width: 16px; height: 16px;"> 
                 ${escapeHtml(attr.name)}
             </label>`;
         }
@@ -717,12 +717,12 @@ function updateDetailValueCheckboxes() {
             <div style="display: flex; flex-wrap: wrap; gap: 10px;">`;
         
         valuesHtml += `<label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 12px;">
-            <input type="checkbox" class="detail-all-values-checkbox" data-attr-name="${escapeHtml(attr.name)}" checked style="accent-color: #f39c12; width: 14px; height: 14px;"> Все
+            <input type="checkbox" class="detail-all-values-checkbox" data-attr-name="${escapeHtml(attr.name)}" checked style="accent-color: var(--minus-bg); width: 14px; height: 14px;"> Все
         </label>`;
         
         for (const value of attr.values) {
             valuesHtml += `<label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 12px;">
-                <input type="checkbox" class="detail-value-checkbox" data-attr-name="${escapeHtml(attr.name)}" data-value="${escapeHtml(value)}" checked style="accent-color: #f39c12; width: 14px; height: 14px;"> ${escapeHtml(value)}
+                <input type="checkbox" class="detail-value-checkbox" data-attr-name="${escapeHtml(attr.name)}" data-value="${escapeHtml(value)}" checked style="accent-color: var(--minus-bg); width: 14px; height: 14px;"> ${escapeHtml(value)}
             </label>`;
         }
         valuesHtml += `</div></div>`;
