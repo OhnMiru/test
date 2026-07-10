@@ -848,7 +848,7 @@ function renderDetailAttributeStats() {
                             <th class="text-right">Продано, шт</th>
                             <th class="text-right">Выручка</th>
                             <th class="text-right">Средняя цена</th>
-                        </table>
+                        </tr>
                     </thead>
                     <tbody>`;
     
@@ -1154,7 +1154,7 @@ function renderStats() {
         </tr>`;
     }
     html += `</tbody>
-            <table>
+            </table>
         </div>
     </div>`;
     
@@ -1175,7 +1175,7 @@ function renderStats() {
                     <tbody>`;
     for (let i = 0; i < topByQty.length; i++) { 
         const p = topByQty[i]; 
-        html += `<td>
+        html += `<tr>
             <td class="text-right"><span class="popular-badge">${i + 1}</span></td>
             <td>${escapeHtml(p.name)}</td>
             <td><span class="type-badge" style="background:${getTypeColor(p.type)}20; color:${getTypeColor(p.type)};">${escapeHtml(p.type)}</span></td>
