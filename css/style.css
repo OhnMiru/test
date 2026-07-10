@@ -2637,7 +2637,7 @@ body.dark .extra-cost-amount {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    accent-color: #f39c12;
+    accent-color: var(--minus-bg);
 }
 
 .loading-photo {
