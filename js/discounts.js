@@ -105,12 +105,23 @@ function updateItemDiscountFromInput() {
     }
 }
 
-function distributeFixedDiscount(products, totalDiscount) {
-    const discountMap = new Map();
-    products.forEach(p => discountMap.set(p.id, 0));
+// ===== КАСКАДНОЕ РАСПРЕДЕЛЕНИЕ ФИКСИРОВАННОЙ СКИДКИ С УЧЁТОМ КОЛИЧЕСТВА =====
+function distributeFixedDiscount(productsWithQty, totalDiscount) {
+    // productsWithQty: [{ id, price, qty }] - qty - количество в корзине
+    const discountMap = new Map(); // хранит суммарную скидку на ПОЗИЦИЮ (price * qty)
+    
+    // Инициализируем
+    productsWithQty.forEach(p => discountMap.set(p.id, 0));
 
-    let activeIds = new Set(products.map(p => p.id));
-    const priceMap = new Map(products.map(p => [p.id, p.price]));
+    let activeIds = new Set(productsWithQty.map(p => p.id));
+    const capacityMap = new Map(); // реальная capacity = price * qty
+    const qtyMap = new Map(); // для хранения количества
+    productsWithQty.forEach(p => {
+        const capacity = p.price * p.qty;
+        capacityMap.set(p.id, capacity);
+        qtyMap.set(p.id, p.qty);
+    });
+    
     let pool = totalDiscount;
 
     while (activeIds.size > 0 && pool > 0) {
@@ -119,13 +130,14 @@ function distributeFixedDiscount(products, totalDiscount) {
         const zeroedNow = [];
 
         for (const id of activeIds) {
-            const price = priceMap.get(id);
+            const capacity = capacityMap.get(id);
             const currentDiscount = discountMap.get(id);
-            const capacity = price - currentDiscount;
+            const remainingCapacity = capacity - currentDiscount; // сколько ещё можно "влить"
 
-            if (capacity <= share) {
-                discountMap.set(id, currentDiscount + capacity);
-                excess += share - capacity;
+            if (remainingCapacity <= share) {
+                // Обнуляем товар: забираем всю оставшуюся capacity
+                discountMap.set(id, currentDiscount + remainingCapacity);
+                excess += share - remainingCapacity;
                 zeroedNow.push(id);
             } else {
                 discountMap.set(id, currentDiscount + share);
@@ -138,9 +150,18 @@ function distributeFixedDiscount(products, totalDiscount) {
         if (zeroedNow.length === 0) break;
     }
 
-    return discountMap;
-}
+    // Преобразуем суммарную скидку на позицию в скидку на ЕДИНИЦУ товара
+    const resultMap = new Map();
+    for (const [id, totalDiscountForPosition] of discountMap) {
+        const qty = qtyMap.get(id) || 1;
+        // Скидка на единицу = общая скидка на позицию / количество
+        // Округляем вверх, чтобы не потерять копейки
+        const discountPerUnit = Math.ceil(totalDiscountForPosition / qty);
+        resultMap.set(id, discountPerUnit);
+    }
 
+    return resultMap;
+}
 
 function applyItemDiscount() {
     const typeSelect = document.getElementById('itemDiscountTypeSelect');
@@ -159,17 +180,44 @@ function applyItemDiscount() {
     if (type === 'fixed') {
         const products = Array.from(selectedDiscountProducts).map(id => {
             const card = originalCardsData.find(c => c.id === id);
-            return { id: id, price: card ? card.price : 0 };
+            const qty = cart[id] || 0;
+            return { 
+                id: id, 
+                price: card ? card.price : 0,
+                qty: qty
+            };
         });
-        const discountMap = distributeFixedDiscount(products, value);
+        
+        const validProducts = products.filter(p => p.qty > 0);
+        
+        if (validProducts.length === 0) {
+            showToast("Выбранные товары отсутствуют в корзине", false);
+            return;
+        }
+        
+        const discountMap = distributeFixedDiscount(validProducts, value);
+        
         for (const productId of selectedDiscountProducts) {
-            itemDiscounts[productId] = { type: 'fixed', value: discountMap.get(productId) || 0 };
+            const discountPerUnit = discountMap.get(productId) || 0;
+            if (discountPerUnit > 0) {
+                itemDiscounts[productId] = { type: 'fixed', value: discountPerUnit };
+            } else {
+                delete itemDiscounts[productId];
+            }
         }
     } else {
         for (const productId of selectedDiscountProducts) {
             itemDiscounts[productId] = { type: type, value: value };
         }
     }
+
+    selectedDiscountProducts.clear();
+    discountProductListVisible = false;
+    const container = document.getElementById('productDiscountList');
+    if (container) container.style.display = 'none';
+    updateCartUI();
+    showToast("Скидка применена к выбранным товарам", true);
+}
 
     selectedDiscountProducts.clear();
     discountProductListVisible = false;
