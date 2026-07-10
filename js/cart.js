@@ -154,7 +154,7 @@ function updateCartUI() {
                 <div class="payment-content" style="padding: 12px; padding-top: 0;">
                     <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: var(--text-primary); font-weight: bold; font-size: 13px;">
                         <input type="checkbox" id="paymentTypeCheckbox" ${currentPaymentType === 'transfer' ? 'checked' : ''} 
-                               style="width: 20px; height: 20px; cursor: pointer; accent-color: #f39c12;">
+                               style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--minus-bg);">
                         <span>Оплата переводом <span style="font-weight: normal;">(по умолчанию — наличные)</span></span>
                     </label>
                 </div>
