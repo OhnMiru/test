@@ -523,7 +523,7 @@ function renderGlobalStatsContent(data) {
                     </tr>`;
         }
         html += `</tbody>
-                <tr>
+                </table>
             </div>
         </div>`;
     }
@@ -537,7 +537,7 @@ function renderGlobalStatsContent(data) {
                 <table class="detail-table">
                     <thead>
                         <tr><th>#</th><th>Товар</th><th>Тип</th><th>Участник</th><th class="text-right">Цена</th><th class="text-right">Выручка</th><th class="text-right">Прибыль</th><th class="text-right">Рентаб.</th><th class="text-right">Продано, шт</th>
-                    <tr>
+                    </tr>
                     </thead>
                     <tbody>`;
         for (let i = 0; i < sortedTopProducts.length; i++) {
@@ -751,7 +751,7 @@ function renderUserFullStats(stats, participantName) {
         </tr>`;
     }
     html += `</tbody>
-                <tr>
+                </table>
             </div>
         </div>
         <div class="detail-section">
